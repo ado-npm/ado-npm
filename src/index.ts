@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import 'source-map-support/register';
+import chalk from 'chalk';
 import { version } from '../package.json';
 import { command } from './command';
 import { auth } from './commands/auth';
@@ -69,6 +70,6 @@ if (require.main === module) {
     }
 
     process.exitCode = 1;
-    console.error(`${error.message || error}`);
+    console.error(chalk.red(`${error.message || error}`));
   });
 }

@@ -13,13 +13,13 @@ You will need an [Azure DevOps](https://azure.microsoft.com/en-us/services/devop
 
 ## Authorize
 
-Authorize for all ADO NPM registries found in the _nearest_ `.npmrc` file. This is a replacement for the legacy Windows-only [vsts-npm-auth](https://www.npmjs.com/package/vsts-npm-auth) package.
+Authorize all ADO NPM registries found in the _nearest_ `.npmrc`, `.yarnrc`, and lock (`package-json.lock` or `yarn.lock`) files. This is a replacement for the legacy Windows-only [vsts-npm-auth](https://www.npmjs.com/package/vsts-npm-auth) package.
 
 ```bash
-npx ado-npm auth --npmrc
+npx ado-npm auth --detect
 ```
 
-Authorize for specific ADO NPM registries (org or project scoped). You can use the `--registry` option multiple times to authorize for multiple registries all at once.
+Authorize specific ADO NPM registries (org or project scoped). You can use the `--registry` option multiple times to authorize for multiple registries all at once.
 
 ```bash
 npx ado-npm auth --registry <uri>

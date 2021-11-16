@@ -1,5 +1,6 @@
 import os from 'os';
 import path from 'path';
+import { promises as fs } from 'fs';
 import { findUp } from 'find-up';
 import chalk from 'chalk';
 import { getIni, IIni } from './ini';
@@ -10,20 +11,53 @@ import { createPat } from './pat';
 import { request } from './request';
 
 /**
- * Find the nearest `.npmrc` file and return the ADO registry URLs in it.
+ * Find the nearest `.npmrc`, `.yarnrc`, and lock (`package-lock.json` or
+ * `yarn.lock`) files and returns the ADO registry URLs they contain.
  */
 export async function findNpmRegistries(): Promise<string[]> {
-  const filename = await findUp('.npmrc', { type: 'file' });
   const registries: string[] = [];
+  const npmrcPath = await findUp('.npmrc', { type: 'file' });
 
-  if (filename) {
-    const npmrc = await getIni(filename);
+  if (npmrcPath) {
+    const npmrc = await getIni(npmrcPath);
 
     Object.entries(npmrc.data).map(([key, value]) => {
       if (/(^|:)registry$/.test(key)) {
         registries.push(value);
       }
     });
+  }
+
+  const yarnrcPath = await findUp('.yarnrc');
+
+  if (yarnrcPath) {
+    const yarnrc = await fs.readFile(yarnrcPath, 'utf8');
+    const matchers = [
+      /^\s*["']?(?:@[\w-]+:)?registry['"]?\s+["']?(https:\/\/pkgs\.dev\.azure\.com\/[^\/]+(?:\/(?:[^_\/][^\/]*))?\/_packaging\/(?:[^\/@]+)[^\/]*\/npm\/registry\/)['"]?\s*$/gm,
+      /^\s*["']?(?:@[\w-]+:)?registry['"]?\s+["']?(https:\/\/[^\/.]+.pkgs\.visualstudio\.com(?:\/(?:[^_\/][^\/]*))?\/_packaging\/(?:[^\/@]+)[^\/]*\/npm\/registry\/)['"]?\s*$/gm,
+    ];
+
+    for (const matcher of matchers) {
+      for (const [, match] of yarnrc.matchAll(matcher)) {
+        registries.push(match);
+      }
+    }
+  }
+
+  const lockPath = await findUp(['package-lock.json', 'yarn.lock'], { type: 'file' });
+
+  if (lockPath) {
+    const lock = await fs.readFile(lockPath, 'utf8');
+    const matchers = [
+      /https:\/\/pkgs\.dev\.azure\.com\/[^\/]+(?:\/(?:[^_\/][^\/]*))?\/_packaging\/(?:[^\/@]+)[^\/]*\/npm\/registry\//g,
+      /https:\/\/[^\/.]+.pkgs\.visualstudio\.com(?:\/(?:[^_\/][^\/]*))?\/_packaging\/(?:[^\/@]+)[^\/]*\/npm\/registry\//g,
+    ];
+
+    for (const matcher of matchers) {
+      for (const [match] of lock.matchAll(matcher)) {
+        registries.push(match);
+      }
+    }
   }
 
   return unique(registries);
@@ -47,7 +81,7 @@ export async function getRegistryCredentials(): Promise<Record<string, string>> 
 
   try {
     const npmrc = await getUserNpmrc();
-    const pats: Record<string, string> = {};
+    const pats: Record<string, string> = Object.create(null);
 
     for (const [key, value] of Object.entries(npmrc.data)) {
       for (const matcher of matchers) {
@@ -67,7 +101,7 @@ export async function getRegistryCredentials(): Promise<Record<string, string>> 
 
     return pats;
   } catch {
-    return {};
+    return Object.create(null);
   }
 }
 
@@ -91,30 +125,19 @@ export async function getUnauthorizedRegistries(
   registries = unique(registries);
 
   const unauthorizedUrls: string[] = [];
-  const creds = force ? {} : await getRegistryCredentials();
+  const creds = force ? Object.create(null) : await getRegistryCredentials();
 
   for (const registry of unique(registries)) {
-    const password = creds[registry];
-
-    if (!password) {
-      onResult?.(registry, 'missing');
-      unauthorizedUrls.push(registry);
-      continue;
-    }
-
+    const password: string | undefined = creds[registry];
     const status = await request(registry, {
       method: 'GET',
-      ok: [200, 401, 404],
-      auth: `Basic ${Buffer.from(':' + password, 'utf8').toString('base64')}`,
+      ok: [200, 404, 401],
+      auth: password && `Basic ${Buffer.from(':' + password, 'utf8').toString('base64')}`,
       parser: async (res) => res.status,
     });
 
-    if (status === 404) {
-      throw Error(`Registry does not exist: ${registry}`);
-    }
-
-    if (status !== 200) {
-      onResult?.(registry, 'invalid');
+    if (status !== 200 && status !== 404) {
+      onResult?.(registry, password ? 'invalid' : 'missing');
       unauthorizedUrls.push(registry);
       continue;
     }
@@ -140,8 +163,8 @@ export async function authorizeRegistries(
 
   registries = unique(registries);
 
-  const pats: Record<string, string> = {};
-  const orgMap: Record<string, string> = {};
+  const pats: Record<string, string> = Object.create(null);
+  const orgMap: Record<string, string> = Object.create(null);
 
   for (const registry of registries) {
     const org = parseRegistry(registry)?.org;

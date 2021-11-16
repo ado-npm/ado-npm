@@ -1,9 +1,3 @@
-const matchers = [
-  /^(https:\/\/pkgs\.dev\.azure\.com\/([^\/]+)(?:\/([^_\/][^\/]*))?\/_packaging\/([^\/@]+)[^\/]*\/npm\/registry)(?:\/|$)/,
-  /^(https:\/\/([^\/.]+).pkgs\.visualstudio\.com(?:\/([^_\/][^\/]*))?\/_packaging\/([^\/@]+)[^\/]*\/npm\/registry)(?:\/|$)/,
-  /^()([^\/]+)(?:\/([^\/]+))?\/([^\/]+)$/,
-];
-
 export interface IRegistry {
   org: string;
   project: string | null;
@@ -15,6 +9,12 @@ export interface IRegistry {
  * Extract the parts of an ADO registry URL.
  */
 export function parseRegistry(registry: string): IRegistry | null {
+  const matchers = [
+    /^(https:\/\/pkgs\.dev\.azure\.com\/([^\/]+)(?:\/([^_\/][^\/]*))?\/_packaging\/([^\/@]+)[^\/]*\/npm\/registry)(?:\/|$)/,
+    /^(https:\/\/([^\/.]+).pkgs\.visualstudio\.com(?:\/([^_\/][^\/]*))?\/_packaging\/([^\/@]+)[^\/]*\/npm\/registry)(?:\/|$)/,
+    /^()([^\/]+)(?:\/([^\/]+))?\/([^\/]+)$/,
+  ];
+
   for (const matcher of matchers) {
     const match = registry.match(matcher);
 

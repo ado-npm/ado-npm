@@ -27,8 +27,8 @@ Short registry examples:
 Options:
   -r|--registry <uri>    ADO NPM registry
   -l|--lifetime <days>   New PAT lifetime in days
-  --npmrc                Use all .npmrc registries
-  --force                Force creation of new PATs
+  -d|--detect            Find registries in .npmrc and lock files
+  -f|--force             Force creation of new PATs
   -t|--tenant <value>    Tenant name or ID
   -h|--help              Print this help text
   `,
@@ -39,35 +39,24 @@ Options:
     r: 'registry',
     lifetime: Number,
     l: 'lifetime',
-    npmrc: Boolean,
+    detect: Boolean,
+    d: 'detect',
+    npmrc: 'detect',
     force: Boolean,
+    f: 'force',
     tenant: String,
     t: 'tenant',
   },
   action: async (options, config) => {
-    const {
-      registry: registryUris = [],
-      lifetime,
-      npmrc: useNpmrc,
-      force = false,
-      tenant,
-    } = { ...options, ...config.data };
+    const { lifetime, detect = false, force = false, tenant } = { ...options, ...config.data };
+
+    if (!detect && !options.registry && !config.data.registry) {
+      throw Error('Missing required option: --registry|--detect');
+    }
 
     let registries: string[] = [];
 
-    array(registryUris).forEach((uri) => {
-      const registry = parseRegistry(uri);
-
-      if (!registry) {
-        throw Error(`Invalid registry value: ${uri}`);
-      }
-
-      getRegistryUrls(registry).forEach((url) => {
-        registries.push(url);
-      });
-    });
-
-    if (useNpmrc) {
+    if (detect) {
       (await findNpmRegistries()).forEach((uri) => {
         const registry = parseRegistry(uri);
 
@@ -79,13 +68,19 @@ Options:
           registries.push(url);
         });
       });
-    } else if (registries.length === 0) {
-      throw Error('Either --registry or --npmrc is required');
     }
 
-    if (registries.length === 0) {
-      return;
-    }
+    array(options.registry || (!detect && config.data.registry) || []).forEach((uri) => {
+      const registry = parseRegistry(uri);
+
+      if (!registry) {
+        throw Error(`Invalid registry value: ${uri}`);
+      }
+
+      getRegistryUrls(registry).forEach((url) => {
+        registries.push(url);
+      });
+    });
 
     console.log(`Registries:`);
 
