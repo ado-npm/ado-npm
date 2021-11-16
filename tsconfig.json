@@ -1,0 +1,12 @@
+{
+  "extends": "@tsconfig/node14/tsconfig.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": "lib",
+    "noEmit": true,
+    "types": ["node"],
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+  },
+  "include": ["src/**/*.ts"]
+}
