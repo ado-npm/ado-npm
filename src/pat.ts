@@ -19,10 +19,10 @@ export interface ICreatedPat {
 /**
  * Create a new ADO personal access token for an organization.
  */
-export async function createPat(session: ISession, org: string): Promise<ICreatedPat> {
+export async function createPat(session: ISession, org: string, lifetime: number | undefined): Promise<ICreatedPat> {
   const validTo = new Date();
 
-  validTo.setDate(validTo.getDate() + 90);
+  validTo.setDate(validTo.getDate() + Math.floor(Math.max(1, lifetime ?? 90)));
 
   const res = await request(`https://vssps.dev.azure.com/${org}/_apis/tokens/pats`, {
     method: 'POST',

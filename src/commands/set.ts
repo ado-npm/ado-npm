@@ -21,25 +21,28 @@ Short registry examples:
   contoso/ux
 
 Options:
-  -r|--registry <value>   ADO NPM registry
-  -t|--tenant <value>     Tenant name or ID
-  -h|--help               Print this help text
+  -r|--registry <uri>    ADO NPM registry
+  -l|--lifetime <days>   New PAT lifetime in days
+  -t|--tenant <value>    Tenant name or ID
+  -h|--help              Print this help text
   `,
   spec: {
     help: Boolean,
     h: 'help',
     registry: String,
     r: 'registry',
+    lifetime: Number,
+    l: 'lifetime',
     tenant: String,
     t: 'tenant',
     npmrc: Boolean,
   },
   action: async (options, config) => {
-    for (const key of ['registry', 'tenant'] as const) {
+    for (const key of ['registry', 'lifetime', 'tenant'] as const) {
       if (options[key] === '') {
         config.data[key] = undefined;
       } else if (options[key]) {
-        config.data[key] = options[key];
+        config.data[key] = options[key] as any;
       }
     }
 

@@ -129,7 +129,11 @@ export async function getUnauthorizedRegistries(
  * Log the user in and create new personal access tokens which are stored in
  * the user's home directory `.npmrc` file.
  */
-export async function authorizeRegistries(registries: string[], tenant?: string): Promise<void> {
+export async function authorizeRegistries(
+  registries: string[],
+  tenant: string | undefined,
+  lifetime: number | undefined,
+): Promise<void> {
   if (registries.length === 0) {
     return;
   }
@@ -153,7 +157,7 @@ export async function authorizeRegistries(registries: string[], tenant?: string)
   console.log(`Tokens (${session.username}):`);
 
   for (const org of orgs) {
-    const newPat = await createPat(session, org);
+    const newPat = await createPat(session, org, lifetime);
 
     console.log(`  ${chalk.dim(newPat.name + '@' + org)} ${chalk.green('(created)')}`);
     pats[org] = newPat.value;

@@ -25,24 +25,33 @@ Short registry examples:
   contoso/ux
 
 Options:
-  -r|--registry <value>   ADO NPM registry
-  --npmrc                 Use all .npmrc registries
-  --force                 Force creation of new PATs
-  -t|--tenant <value>     Tenant name or ID
-  -h|--help               Print this help text
+  -r|--registry <uri>    ADO NPM registry
+  -l|--lifetime <days>   New PAT lifetime in days
+  --npmrc                Use all .npmrc registries
+  --force                Force creation of new PATs
+  -t|--tenant <value>    Tenant name or ID
+  -h|--help              Print this help text
   `,
   spec: {
     help: Boolean,
     h: 'help',
     registry: [String],
     r: 'registry',
+    lifetime: Number,
+    l: 'lifetime',
     npmrc: Boolean,
     force: Boolean,
     tenant: String,
     t: 'tenant',
   },
   action: async (options, config) => {
-    const { registry: registryUris = [], npmrc: useNpmrc, force = false, tenant } = { ...options, ...config.data };
+    const {
+      registry: registryUris = [],
+      lifetime,
+      npmrc: useNpmrc,
+      force = false,
+      tenant,
+    } = { ...options, ...config.data };
 
     let registries: string[] = [];
 
@@ -90,6 +99,6 @@ Options:
       return;
     }
 
-    await authorizeRegistries(unauthorized, tenant);
+    await authorizeRegistries(unauthorized, tenant, lifetime);
   },
 });

@@ -6,6 +6,7 @@ import { Expand } from './types';
 
 const zConfigData = z.object({
   registry: z.string().optional(),
+  lifetime: z.number().optional(),
   tenant: z.string().optional(),
 });
 

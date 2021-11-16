@@ -24,22 +24,25 @@ Short registry examples:
   contoso/ux
 
 Options:
-  -r|--registry <value>   ADO NPM registry
-  -t|--tenant <value>     Tenant name or ID
-  -h|--help               Print this help text
+  -r|--registry <uri>    ADO NPM registry
+  -l|--lifetime <days>   New PAT lifetime in days
+  -t|--tenant <value>    Tenant name or ID
+  -h|--help              Print this help text
   `,
   spec: {
     help: Boolean,
     h: 'help',
     registry: String,
     r: 'registry',
+    lifetime: Number,
+    l: 'lifetime',
     tenant: String,
     t: 'tenant',
     npmrc: Boolean,
   },
   permissive: true,
   action: async (options, config) => {
-    const { registry, tenant } = { ...options, ...config.data };
+    const { registry, lifetime, tenant } = { ...options, ...config.data };
 
     assert(registry, Error('Missing required option: --registry'));
 
@@ -49,7 +52,7 @@ Options:
 
     const unauthorized = await getUnauthorizedRegistries([registryUrl]);
 
-    await authorizeRegistries(unauthorized, tenant);
+    await authorizeRegistries(unauthorized, tenant, lifetime);
     await execa('npm', ['add', '-g', '--registry', registryUrl, ...options._], { stdio: 'inherit' });
   },
 });

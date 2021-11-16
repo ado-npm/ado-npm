@@ -2,7 +2,7 @@
 
 Command line utility for interacting with Azure DevOps private NPM registries.
 
-- Configure long-lived credentials for private Azure DevOps NPM registries.
+- Configure long-lived (90 day) credentials with interactive browser authorization.
 - Authorize and globally install private packages with a single command.
 
 __Note__: This tool is using the Azure Devops [PAT Lifecycle Management API](https://docs.microsoft.com/en-us/rest/api/azure/devops/tokens/pats) _preview version_. Version 1 of this tool will be released when the API reaches non-preview status.
@@ -13,7 +13,7 @@ You will need an [Azure DevOps](https://azure.microsoft.com/en-us/services/devop
 
 ## Authorize
 
-Authorize for all ADO NPM registries found in your the _nearest_ `.npmrc` file. This is a replacement for the legacy Windows-only [vsts-npm-auth](https://www.npmjs.com/package/vsts-npm-auth) package.
+Authorize for all ADO NPM registries found in the _nearest_ `.npmrc` file. This is a replacement for the legacy Windows-only [vsts-npm-auth](https://www.npmjs.com/package/vsts-npm-auth) package.
 
 ```bash
 npx ado-npm auth --npmrc
@@ -26,7 +26,7 @@ npx ado-npm auth --registry <uri>
 npx ado-npm auth --registry <uri-1> --registry <uri-2>
 ```
 
-Registry URIs (for this and other commands) can be the full DevOps URL or a path-like short form which includes only the org, (optional) project, and feed, separated by slashes.
+Registry URIs (for this and other commands) can be the full Azure DevOps URL or a path-like short form which includes only the org, (optional) project, and feed, separated by slashes.
 
 Full URL example:
 
@@ -40,11 +40,11 @@ Path-like short example:
 --registry <org>/<project>/<feed>
 ```
 
-Personal access tokens are generated with a 90 day lifetime and permission to read and write packages.
+Personal access tokens are generated with a 90 day lifetime, scoped to a single organization, and have permission to read and write packages.
 
 ## Install
 
-Install _global_ packages with a single command, including authorization if necessary.
+Install packages _globally_ with a single command, interactively authorizing if necessary.
 
 ```bash
 npx ado-npm add --registry <uri> <...packages>
@@ -54,10 +54,10 @@ Global packages are always installed using `npm`. To remove them, use the `npm u
 
 ## Configure
 
-You can set default values for the `--registry` and `--tenant` options. When defaults are set, these options can be omitted from any other command.
+You can set default values for the `--registry`, `--tenant`, or `--lifetime` options. When defaults are set, these options can be omitted from any other command.
 
 ```bash
-npx ado-npm set --registry <uri> --tenant <id_or_domain>
+npx ado-npm set --registry <uri> --lifetime <days> --tenant <value>
 ```
 
 Explicitly choosing a tenant should only be necessary in rare cases.
