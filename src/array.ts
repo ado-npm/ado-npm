@@ -11,6 +11,6 @@ export function array<T>(...values: (T | T[])[]): T[] {
  */
 export function unique<T>(values: (null | undefined | T)[]): Exclude<T, null | undefined>[] {
   return values.filter((current, i, arr) => {
-    return current != null && arr.findIndex((other, j) => j < i && other != null && other === current);
+    return current != null && arr.findIndex((other, j) => j < i && other != null && other === current) < 0;
   }) as Exclude<T, null | undefined>[];
 }
