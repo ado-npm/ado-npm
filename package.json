@@ -1,6 +1,6 @@
 {
   "name": "ado-npm",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Azure DevOps NPM utilities.",
   "author": "Chris Ackerman",
   "license": "ISC",

@@ -46,7 +46,7 @@ Commands:
       help: Boolean,
       h: 'help',
       version: Boolean,
-      v: 'v',
+      v: 'version',
     },
     version,
     permissive: true,
