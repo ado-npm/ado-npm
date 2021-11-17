@@ -24,7 +24,7 @@ const config = {
     commonjs(),
     alias({ entries: [{ find: /^node(?:js)?:(.*)/, replacement: '$1' }] }),
     external({ deps: true, peerDeps: true, optDeps: true, devDeps: false }),
-    resolve(),
+    resolve({ exportConditions: ['node'] }),
     json(),
     typescript({
       tsconfig: path.resolve('tsconfig.json'),

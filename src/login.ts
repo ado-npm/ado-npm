@@ -1,7 +1,7 @@
 import http from 'http';
 import { URL } from 'url';
 import { AddressInfo } from 'net';
-import crypto from 'crypto';
+import { v4 as uuid } from 'uuid';
 import open from 'open';
 import delay from 'delay';
 import chalk from 'chalk';
@@ -34,7 +34,7 @@ export async function login(tenant = 'common', scopes?: string[]): Promise<ISess
     },
   });
   const cryptoProvider = new CryptoProvider();
-  const state = crypto.randomUUID();
+  const state = uuid();
   const pkce = await cryptoProvider.generatePkceCodes();
   const server = http.createServer();
   const delayPromise = delay(60000);
@@ -122,7 +122,7 @@ export async function login(tenant = 'common', scopes?: string[]): Promise<ISess
                 codeChallengeMethod: 'S256',
                 prompt: 'select_account',
                 responseMode: ResponseMode.QUERY,
-                nonce: crypto.randomUUID(),
+                nonce: uuid(),
                 state,
               })
               .then((authUrl) => {
