@@ -1,5 +1,4 @@
 import assert from 'assert';
-import chalk from 'chalk';
 import { createCommand } from '../command';
 import { login } from '../login';
 import { parseRegistry } from '../registry';

@@ -20,12 +20,16 @@ export async function findNpmRegistries(): Promise<string[]> {
 
   if (npmrcPath) {
     const npmrc = await getIni(npmrcPath);
+    const matchers = [
+      /https:\/\/pkgs\.dev\.azure\.com\/[^\/]+(?:\/(?:[^_\/][^\/]*))?\/_packaging\/(?:[^\/@]+)[^\/]*\/npm\/registry\b/g,
+      /https:\/\/[^\/.]+.pkgs\.visualstudio\.com(?:\/(?:[^_\/][^\/]*))?\/_packaging\/(?:[^\/@]+)[^\/]*\/npm\/registry\b/g,
+    ];
 
-    Object.entries(npmrc.data).map(([key, value]) => {
-      if (/(^|:)registry$/.test(key)) {
+    for (const [key, value] of Object.entries(npmrc.data)) {
+      if (/(^|:)registry$/.test(key) && matchers.some((matcher) => matcher.test(value))) {
         registries.push(value);
       }
-    });
+    }
   }
 
   const yarnrcPath = await findUp('.yarnrc');
@@ -33,14 +37,12 @@ export async function findNpmRegistries(): Promise<string[]> {
   if (yarnrcPath) {
     const yarnrc = await fs.readFile(yarnrcPath, 'utf8');
     const matchers = [
-      /^\s*["']?(?:@[\w-]+:)?registry['"]?\s+["']?(https:\/\/pkgs\.dev\.azure\.com\/[^\/]+(?:\/(?:[^_\/][^\/]*))?\/_packaging\/(?:[^\/@]+)[^\/]*\/npm\/registry\/)['"]?\s*$/gm,
-      /^\s*["']?(?:@[\w-]+:)?registry['"]?\s+["']?(https:\/\/[^\/.]+.pkgs\.visualstudio\.com(?:\/(?:[^_\/][^\/]*))?\/_packaging\/(?:[^\/@]+)[^\/]*\/npm\/registry\/)['"]?\s*$/gm,
+      /^\s*["']?(?:@[\w-]+:)?registry['"]?\s+["']?(https:\/\/pkgs\.dev\.azure\.com\/[^\/]+(?:\/(?:[^_\/][^\/]*))?\/_packaging\/(?:[^\/@]+)[^\/]*\/npm\/registry\/?)['"]?\s*$/gm,
+      /^\s*["']?(?:@[\w-]+:)?registry['"]?\s+["']?(https:\/\/[^\/.]+.pkgs\.visualstudio\.com(?:\/(?:[^_\/][^\/]*))?\/_packaging\/(?:[^\/@]+)[^\/]*\/npm\/registry\/?)['"]?\s*$/gm,
     ];
 
     for (const matcher of matchers) {
-      for (const [, match] of yarnrc.matchAll(matcher)) {
-        registries.push(match);
-      }
+      registries.push(...[...yarnrc.matchAll(matcher)].map((match) => match[1]));
     }
   }
 
@@ -49,14 +51,12 @@ export async function findNpmRegistries(): Promise<string[]> {
   if (lockPath) {
     const lock = await fs.readFile(lockPath, 'utf8');
     const matchers = [
-      /https:\/\/pkgs\.dev\.azure\.com\/[^\/]+(?:\/(?:[^_\/][^\/]*))?\/_packaging\/(?:[^\/@]+)[^\/]*\/npm\/registry\//g,
-      /https:\/\/[^\/.]+.pkgs\.visualstudio\.com(?:\/(?:[^_\/][^\/]*))?\/_packaging\/(?:[^\/@]+)[^\/]*\/npm\/registry\//g,
+      /https:\/\/pkgs\.dev\.azure\.com\/[^\/]+(?:\/(?:[^_\/][^\/]*))?\/_packaging\/(?:[^\/@]+)[^\/]*\/npm\/registry\b/g,
+      /https:\/\/[^\/.]+.pkgs\.visualstudio\.com(?:\/(?:[^_\/][^\/]*))?\/_packaging\/(?:[^\/@]+)[^\/]*\/npm\/registry\b/g,
     ];
 
     for (const matcher of matchers) {
-      for (const [match] of lock.matchAll(matcher)) {
-        registries.push(match);
-      }
+      registries.push(...[...lock.matchAll(matcher)].map((match) => match[0]));
     }
   }
 

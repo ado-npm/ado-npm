@@ -40,7 +40,7 @@ Path-like short example:
 --registry <org>/<project>/<feed>
 ```
 
-Personal access tokens are generated with a 90 day lifetime, scoped to a single organization, and have permission to read and write packages.
+Personal access tokens are generated with a 90 day lifetime, scoped to a single organization, and have permission to read and write packages. Credentials are only ever stored in the users `$HOME/.npmrc` file.
 
 ## Install
 

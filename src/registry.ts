@@ -10,9 +10,9 @@ export interface IRegistry {
  */
 export function parseRegistry(registry: string): IRegistry | null {
   const matchers = [
-    /^(https:\/\/pkgs\.dev\.azure\.com\/([^\/]+)(?:\/([^_\/][^\/]*))?\/_packaging\/([^\/@]+)[^\/]*\/npm\/registry)(?:\/|$)/,
-    /^(https:\/\/([^\/.]+).pkgs\.visualstudio\.com(?:\/([^_\/][^\/]*))?\/_packaging\/([^\/@]+)[^\/]*\/npm\/registry)(?:\/|$)/,
-    /^()([^\/]+)(?:\/([^\/]+))?\/([^\/]+)$/,
+    /\b(https:\/\/pkgs\.dev\.azure\.com\/([^\/]+)(?:\/([^_\/][^\/]*))?\/_packaging\/([^\/@]+)[^\/]*\/npm\/registry)\b/,
+    /\b(https:\/\/([^\/.]+).pkgs\.visualstudio\.com(?:\/([^_\/][^\/]*))?\/_packaging\/([^\/@]+)[^\/]*\/npm\/registry)\b/,
+    /\b()([^\/]+)(?:\/([^\/]+))?\/([^\/]+)$/,
   ];
 
   for (const matcher of matchers) {
@@ -20,8 +20,9 @@ export function parseRegistry(registry: string): IRegistry | null {
 
     if (match) {
       const [, fullUrl, org, project, feed] = match;
-      const url =
-        fullUrl || `https://pkgs.dev.azure.com/${org}${project ? `/${project}` : ''}/_packaging/${feed}/npm/registry/`;
+      const url = fullUrl
+        ? fullUrl + '/'
+        : `https://pkgs.dev.azure.com/${org}${project ? `/${project}` : ''}/_packaging/${feed}/npm/registry/`;
 
       return {
         org,
