@@ -6,7 +6,7 @@ import chalk from 'chalk';
 import { getIni, IIni } from './ini';
 import { parseRegistry } from './registry';
 import { unique } from './array';
-import { login } from './login';
+import { ISession } from './login';
 import { createPat } from './pat';
 import { request } from './request';
 
@@ -149,18 +149,13 @@ export async function getUnauthorizedRegistries(
 }
 
 /**
- * Log the user in and create new personal access tokens which are stored in
- * the user's home directory `.npmrc` file.
+ * Create and store (in `~/.npmrc`) new personal access tokens.
  */
 export async function authorizeRegistries(
+  session: ISession,
   registries: string[],
-  tenant: string | undefined,
   lifetime: number | undefined,
 ): Promise<void> {
-  if (registries.length === 0) {
-    return;
-  }
-
   registries = unique(registries);
 
   const pats: Record<string, string> = Object.create(null);
@@ -175,7 +170,6 @@ export async function authorizeRegistries(
   }
 
   const orgs = unique([...Object.values(orgMap)]).sort();
-  const session = await login(tenant);
 
   console.log(`Tokens (${session.username}):`);
 

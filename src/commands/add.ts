@@ -1,6 +1,7 @@
 import assert from 'assert';
 import execa from 'execa';
 import { createCommand } from '../command';
+import { login } from '../login';
 import { getUnauthorizedRegistries, authorizeRegistries } from '../npm';
 import { parseRegistry } from '../registry';
 
@@ -52,7 +53,12 @@ Options:
 
     const unauthorized = await getUnauthorizedRegistries([registryUrl]);
 
-    await authorizeRegistries(unauthorized, tenant, lifetime);
+    if (unauthorized.length) {
+      const session = await login(tenant);
+
+      await authorizeRegistries(session, unauthorized, lifetime);
+    }
+
     await execa('npm', ['add', '-g', '--registry', registryUrl, ...options._], { stdio: 'inherit' });
   },
 });

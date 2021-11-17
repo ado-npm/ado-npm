@@ -3,6 +3,7 @@ import { createCommand } from '../command';
 import { getRegistryUrls, parseRegistry } from '../registry';
 import { array } from '../array';
 import { findNpmRegistries, getUnauthorizedRegistries, authorizeRegistries } from '../npm';
+import { login } from '../login';
 
 export const auth = createCommand({
   usage: `
@@ -94,6 +95,8 @@ Options:
       return;
     }
 
-    await authorizeRegistries(unauthorized, tenant, lifetime);
+    const session = await login(tenant);
+
+    await authorizeRegistries(session, unauthorized, lifetime);
   },
 });
