@@ -37,7 +37,7 @@ export async function login(tenant = 'common', scopes?: string[]): Promise<ISess
   const state = uuid();
   const pkce = await cryptoProvider.generatePkceCodes();
   const server = http.createServer();
-  const delayPromise = delay(60000);
+  const delayPromise = delay(120_000);
   const close = () => {
     setTimeout(() => {
       server.close();
